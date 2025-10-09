@@ -1,0 +1,21 @@
+# フロントエンド開発用Dockerfile
+FROM node:18-alpine
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# package.jsonとpackage-lock.jsonをコピー
+# この段階でコピーすることで、依存関係が変わらない限りキャッシュが有効
+COPY package*.json ./
+
+# 依存パッケージのインストール
+RUN npm install
+
+# アプリケーションのソースコードをコピー
+COPY . .
+
+# Vite開発サーバーのポートを公開
+EXPOSE 5173
+
+# 開発サーバーを起動（--hostオプションでDocker外からアクセス可能にする）
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

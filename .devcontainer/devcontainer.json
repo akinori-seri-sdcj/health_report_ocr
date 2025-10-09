@@ -1,0 +1,103 @@
+{
+  "name": "Health Report OCR Development",
+
+  // Docker Composeファイルを使用
+  "dockerComposeFile": "../docker-compose.yml",
+
+  // 開発に使用するサービス（フロントエンドコンテナ内で作業）
+  "service": "frontend",
+
+  // コンテナ内の作業ディレクトリ
+  "workspaceFolder": "/app",
+
+  // VS Code/Cursorの設定とエクステンション
+  "customizations": {
+    "vscode": {
+      // 推奨エクステンション
+      "extensions": [
+        // TypeScript/JavaScript開発
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+
+        // React開発
+        "dsznajder.es7-react-js-snippets",
+
+        // Tailwind CSS
+        "bradlc.vscode-tailwindcss",
+
+        // Docker
+        "ms-azuretools.vscode-docker",
+
+        // Git
+        "eamodio.gitlens",
+
+        // その他便利ツール
+        "christian-kohler.path-intellisense",
+        "formulahendry.auto-rename-tag"
+      ],
+
+      // VS Code/Cursor設定
+      "settings": {
+        // 保存時に自動フォーマット
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+        // ESLintの設定
+        "eslint.validate": [
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact"
+        ],
+        "eslint.format.enable": true,
+
+        // Tailwind CSS IntelliSense
+        "tailwindCSS.experimental.classRegex": [
+          ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        ],
+
+        // ファイル保存時の動作
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+
+        // タブ設定
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+      }
+    }
+  },
+
+  // コンテナ起動時に自動的に開放するポート
+  "forwardPorts": [5173, 8080, 443],
+
+  // ポートの表示名
+  "portsAttributes": {
+    "5173": {
+      "label": "Frontend (Vite)",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Backend API",
+      "onAutoForward": "silent"
+    },
+    "443": {
+      "label": "HTTPS (Nginx)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  // コンテナ作成後に実行するコマンド
+  "postCreateCommand": "npm install",
+
+  // コンテナ起動後に実行するコマンド（開発サーバーは自動起動）
+  // "postStartCommand": "npm run dev",
+
+  // リモートユーザー（rootではなく一般ユーザーで作業）
+  "remoteUser": "node",
+
+  // 機能の追加（オプション）
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
+}

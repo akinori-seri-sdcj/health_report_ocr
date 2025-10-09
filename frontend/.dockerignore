@@ -1,0 +1,15 @@
+# Dockerイメージに含めないファイル（フロントエンド）
+
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.env.*
+dist
+build
+coverage
+.vscode
+.idea
+*.log

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テスト用健診結果画像生成</title>
+</head>
+<body>
+    <h1>テスト用健診結果画像生成</h1>
+    <button onclick="generateImage()">テスト画像を生成してダウンロード</button>
+    <div id="output"></div>
+
+    <script>
+        function generateImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 1200;
+            const ctx = canvas.getContext('2d');
+
+            // 背景
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 800, 1200);
+
+            // タイトル
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 32px Arial';
+            ctx.fillText('健康診断結果', 50, 80);
+
+            // 受診者情報
+            ctx.font = '20px Arial';
+            ctx.fillText('氏名: 山田 太郎', 50, 150);
+            ctx.fillText('受診日: 2025-10-03', 50, 190);
+
+            // 検査結果（表形式）
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('検査項目', 50, 250);
+            ctx.fillText('値', 300, 250);
+            ctx.fillText('単位', 450, 250);
+            ctx.fillText('判定', 600, 250);
+
+            // 線
+            ctx.strokeStyle = 'black';
+            ctx.beginPath();
+            ctx.moveTo(50, 260);
+            ctx.lineTo(750, 260);
+            ctx.stroke();
+
+            // データ
+            ctx.font = '16px Arial';
+            const data = [
+                ['身長', '170.5', 'cm', 'A'],
+                ['体重', '65.2', 'kg', 'A'],
+                ['BMI', '22.5', '', 'A'],
+                ['最高血圧', '135', 'mmHg', 'C'],
+                ['最低血圧', '85', 'mmHg', 'B'],
+                ['LDLコレステロール', '145', 'mg/dL', 'D2'],
+                ['HDLコレステロール', '55', 'mg/dL', 'A'],
+                ['中性脂肪', '120', 'mg/dL', 'B'],
+                ['空腹時血糖', '98', 'mg/dL', 'A'],
+                ['HbA1c', '5.6', '%', 'A'],
+            ];
+
+            let y = 290;
+            data.forEach(row => {
+                ctx.fillText(row[0], 50, y);
+                ctx.fillText(row[1], 300, y);
+                ctx.fillText(row[2], 450, y);
+                ctx.fillText(row[3], 600, y);
+                y += 30;
+            });
+
+            // 総合所見
+            y += 50;
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('総合所見', 50, y);
+            y += 30;
+            ctx.font = '16px Arial';
+            ctx.fillText('総合判定: D2', 50, y);
+            y += 30;
+            ctx.fillText('医師の所見: 血圧、脂質について精密検査を受けてください。', 50, y);
+
+            // 画像としてダウンロード
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'test-health-report.png';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                document.getElementById('output').innerHTML = '<p>✅ テスト画像がダウンロードされました！</p>';
+            });
+        }
+    </script>
+</body>
+</html>

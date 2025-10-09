@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose:*)",
+      "Bash(timeout:*)",
+      "Bash(curl http://localhost:5173/camera)",
+      "Bash(npm install dexie zustand)",
+      "Bash(cat:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
