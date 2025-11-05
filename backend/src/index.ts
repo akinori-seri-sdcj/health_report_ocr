@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import { logger } from './utils/logger'
 import { errorHandler } from './middleware/error-handler'
 import healthReportRoutes from './routes/health-report.routes'
+import auditRoutes from './routes/audit.routes'
 import { healthCheck } from './controllers/health-report.controller'
 
 // 環境変数の読み込み
@@ -43,6 +44,7 @@ app.get('/', (req, res) => {
 
 // APIルート
 app.use('/process-health-report', healthReportRoutes)
+app.use('/audit', auditRoutes)
 
 // エラーハンドリング
 app.use(errorHandler)

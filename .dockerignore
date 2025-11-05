@@ -1,0 +1,17 @@
+# Added by /speckit Phase 1 setup
+.git/
+.gitignore
+node_modules/
+**/node_modules/
+dist/
+build/
+coverage/
+*.log*
+.env*
+Dockerfile*
+docker-compose*.yml
+nginx/certs/
+frontend/.vite/
+frontend/dist/
+backend/dist/
+
