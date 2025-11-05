@@ -16,6 +16,8 @@ You are updating the project constitution at `.specify/memory/constitution.md`. 
 
 Follow this execution flow:
 
+0. To disable automatic branch creation when running the `specify` command, set the workflow so that all specifications are committed directly to the current working branch. Contributors must avoid creating new branches unless explicitly required for major features or fixes. This rule applies to all `specify` command operations in this repository.
+
 1. Load the existing constitution template at `.specify/memory/constitution.md`.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
    **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
