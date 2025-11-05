@@ -8,6 +8,8 @@ interface SessionState {
   // 現在のセッション
   currentSession: Session | null
   currentImages: CapturedImage[]
+  // 現在のユーザーロール（簡易）
+  userRoles?: string[]
 
   // ローディング状態
   isLoading: boolean
@@ -21,6 +23,8 @@ interface SessionState {
   reorderImages: (fromIndex: number, toIndex: number) => Promise<void>
   clearSession: () => void
   deleteSession: (sessionId: string) => Promise<void>
+  // 役割の設定（簡易）
+  setUserRoles: (roles: string[]) => void
 }
 
 /**
@@ -37,6 +41,7 @@ function generateUUID(): string {
 export const useSessionStore = create<SessionState>((set, get) => ({
   currentSession: null,
   currentImages: [],
+  userRoles: [],
   isLoading: false,
   error: null,
 
@@ -228,5 +233,12 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     await db.sessions.delete(sessionId)
 
     console.log('[SessionStore] セッションを削除しました:', sessionId)
+  },
+  /**
+   * ユーザーロールを設定（簡易）
+   */
+  setUserRoles: (roles: string[]) => {
+    set({ userRoles: roles })
+    try { localStorage.setItem('userRoles', JSON.stringify(roles)) } catch {}
   },
 }))

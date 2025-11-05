@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
 import { processHealthReport } from '../api/healthReportApi'
+import ExportModal from '../components/ExportModal'
+import { exportData } from '../services/export.service'
+import { currentUserCanExport } from '../services/permission.service'
 
 /**
  * 確認・編集画面
@@ -30,6 +33,11 @@ export const ConfirmEditPage: React.FC = () => {
 
   // 初期化状態
   const [isInitializing, setIsInitializing] = useState(true)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [selectedRowIndices] = useState<number[]>([])
+  const [exportMessage, setExportMessage] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   // セッションの初期化
   useEffect(() => {
@@ -168,16 +176,51 @@ export const ConfirmEditPage: React.FC = () => {
    * Excel生成ページへ
    */
   const handleProceedToExcel = () => {
-    if (!ocrResult) {
-      alert('OCR結果がありません')
+    if (!ocrResult || (ocrResult.検査結果?.length ?? 0) === 0) {
+      alert('エクスポート可能な行がありません')
       return
     }
+    // Reuse this button to trigger export options
+    setExportOpen(true)
+  }
 
-    // セッションIDをクリア（次回カメラページで新しいセッション）
-    localStorage.removeItem('currentSessionId')
-
-    // TODO: 2.6 Excel生成ページに遷移
-    navigate('/generate-excel')
+  // Export modal open/close (placeholder only)
+  const handleOpenExport = () => setExportOpen(true)
+  const handleCloseExport = () => setExportOpen(false)
+  const handleConfirmExport = async (
+    format: 'xlsx' | 'csv',
+    scope: 'filtered' | 'selected' | 'all',
+    encoding?: 'utf-8' | 'shift_jis'
+  ) => {
+    try {
+      setExporting(true)
+      let effectiveScope: 'filtered' | 'selected' = scope === 'all' ? 'filtered' : (scope as any)
+      // None-selected handling for 'selected' scope
+      if (effectiveScope === 'selected' && selectedRowIndices.length === 0) {
+        const proceed = window.confirm('選択された行がありません。絞り込み済みの全行をエクスポートしますか？')
+        if (!proceed) {
+          setExportMessage('Export canceled.')
+          setExportOpen(false)
+          setExporting(false)
+          return
+        }
+        effectiveScope = 'filtered'
+      }
+      await exportData(format, effectiveScope, encoding, selectedRowIndices)
+      setExportMessage(`Exported ${format.toUpperCase()} successfully.`)
+      setExportError(null)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Export failed'
+      setExportError(msg)
+      setExportMessage(null)
+    } finally {
+      setExportOpen(false)
+      setExporting(false)
+    }
+  }
+  const handleCancelExport = () => {
+    setExportMessage('Export canceled.')
+    setExportError(null)
   }
 
   /**
@@ -194,6 +237,8 @@ export const ConfirmEditPage: React.FC = () => {
     isProcessing,
     error,
   })
+
+  const hasRows = !!ocrResult && (((ocrResult as any)['検査結果']?.length || 0) > 0)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -213,6 +258,13 @@ export const ConfirmEditPage: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {/* Export status messages (placeholder) */}
+        {exportMessage && (
+          <div className="mb-4 bg-blue-50 text-blue-700 px-4 py-2 rounded">{exportMessage}</div>
+        )}
+        {exportError && (
+          <div className="mb-4 bg-red-50 text-red-700 px-4 py-2 rounded">{exportError}</div>
+        )}
         {/* 初期化中 */}
         {isInitializing && (
           <div className="text-center py-12">
@@ -239,6 +291,8 @@ export const ConfirmEditPage: React.FC = () => {
                   />
                   📁 画像を追加
                 </label>
+
+                {/* Export button removed per spec (single entry via bottom button) */}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -425,6 +479,16 @@ export const ConfirmEditPage: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Export Modal (centered overlay) */}
+      <ExportModal
+        open={exportOpen}
+        onClose={handleCloseExport}
+        onConfirm={handleConfirmExport}
+        onCancel={handleCancelExport}
+        defaultFormat="xlsx"
+        busy={exporting}
+      />
     </div>
   )
 }

@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: Export Audit API
+  version: 1.0.0
+paths:
+  /audit/exports:
+    post:
+      summary: Record an export event
+      description: Optional endpoint to log export events for traceability. No sensitive data should be sent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [timestamp, userId, sessionId, format, scope, recordCount, outcome]
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                userId:
+                  type: string
+                sessionId:
+                  type: string
+                format:
+                  type: string
+                  enum: [xlsx, csv]
+                scope:
+                  type: string
+                  enum: [all, filtered]
+                recordCount:
+                  type: integer
+                  minimum: 0
+                outcome:
+                  type: string
+                  enum: [completed, canceled, failed]
+                reason:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid payload
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
