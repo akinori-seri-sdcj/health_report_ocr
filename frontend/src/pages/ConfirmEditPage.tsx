@@ -4,6 +4,7 @@ import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
 import { processHealthReport } from '../api/healthReportApi'
 import ExportModal from '../components/ExportModal'
+import { ImagePreview } from '../components/ImagePreview'
 import { exportData } from '../services/export.service'
 import { currentUserCanExport } from '../services/permission.service'
 
@@ -16,7 +17,12 @@ export const ConfirmEditPage: React.FC = () => {
   const navigate = useNavigate()
 
   // セッション情報
-  const { currentImages, currentSession, createSession, loadSession, addImage } = useSessionStore()
+  const { currentImages, currentSession, createSession, loadSession, addImage, imagePaneVisible, setImagePaneVisible } = useSessionStore()
+  // Fallback guards in case older bundle lacks new store fields
+  const paneVisible = (typeof imagePaneVisible !== 'undefined' ? imagePaneVisible : true)
+  const setPaneVisible = (v: boolean) => {
+    try { setImagePaneVisible?.(v) } catch {}
+  }
 
   // OCR結果
   const {
@@ -38,6 +44,7 @@ export const ConfirmEditPage: React.FC = () => {
   const [selectedRowIndices] = useState<number[]>([])
   const [exportMessage, setExportMessage] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [sourceImageUrl, setSourceImageUrl] = useState<string | null>(null); const [viewerPage, setViewerPage] = useState<number>(0)
 
   // セッションの初期化
   useEffect(() => {
@@ -85,6 +92,28 @@ export const ConfirmEditPage: React.FC = () => {
       console.log('[ConfirmEditPage] セッション読み込み完了:', currentImages.length, '枚')
     }
   }, [isInitializing, currentSession, currentImages])
+
+  // Source image URL for preview on Confirm/Edit (first image)
+  useEffect(() => {
+    let prev: string | null = null
+    if (currentImages && currentImages.length > 0) {
+      try {
+        const url = URL.createObjectURL(currentImages[0].imageData)
+        setSourceImageUrl(url)
+        prev = url
+      } catch (e) {
+        console.warn('Failed to create preview URL', e)
+        setSourceImageUrl(null)
+      }
+    } else {
+      setSourceImageUrl(null)
+    }
+    return () => {
+      if (prev) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+    }
+  }, [currentImages])
 
   /**
    * ファイルアップロード
@@ -278,7 +307,7 @@ export const ConfirmEditPage: React.FC = () => {
           <>
             <section className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">撮影した画像</h2>
+                <h2 className="text-lg font-semibold">�B�e�����摜</h2>
 
                 {/* ファイルアップロードボタン */}
                 <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition">
@@ -340,7 +369,7 @@ export const ConfirmEditPage: React.FC = () => {
             {/* エラー表示 */}
             {error && (
               <section className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-red-800 mb-2">エラー</h2>
+                <h2 className="text-lg font-semibold text-red-800 mb-2">�G���[</h2>
                 <p className="text-red-600">{error}</p>
                 <button
                   onClick={handleStartOCR}
@@ -354,9 +383,27 @@ export const ConfirmEditPage: React.FC = () => {
             {/* OCR結果の表示・編集 */}
             {ocrResult && (
               <>
+                {/* 読み取り元画像（デスクトップは右側に固定表示） */}
+                {currentImages.length > 0 && paneVisible && (
+                  <section className="bg-white rounded-lg shadow p-4 mb-6 lg:float-right lg:w-1/2 lg:ml-6">
+                    <div className="flex items-center justify-between mb-3"><h2 className="text-lg font-semibold">読み取り元画像</h2></div>
+                    <div className="w-full h-[60vh]">
+                      <ImagePreview
+                        image={currentImages[viewerPage] || currentImages[0]}
+                        onDelete={() => {}}
+                        showControls={false}
+                        objectFit="contain"
+                        viewerControls={true}
+                        pages={currentImages}
+                        pageIndex={viewerPage}
+                        onPageChange={setViewerPage}
+                      />
+                    </div>
+                  </section>
+                )}
                 {/* 受診者情報 */}
                 <section className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-lg font-semibold mb-4">受診者情報</h2>
+              <h2 className="text-lg font-semibold mb-4">患者情報</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -522,3 +569,10 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ image, index }) => {
     </div>
   )
 }
+
+
+
+
+
+
+

@@ -15,6 +15,9 @@ interface SessionState {
   isLoading: boolean
   error: string | null
 
+  // 確認・編集画面の画像ペイン表示（セッション単位で保持）
+  imagePaneVisible: boolean
+
   // アクション
   createSession: () => Promise<string>
   loadSession: (sessionId: string) => Promise<void>
@@ -25,6 +28,8 @@ interface SessionState {
   deleteSession: (sessionId: string) => Promise<void>
   // 役割の設定（簡易）
   setUserRoles: (roles: string[]) => void
+  // 画像ペイン表示切り替え（セッション単位永続）
+  setImagePaneVisible: (visible: boolean) => void
 }
 
 /**
@@ -42,6 +47,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   currentSession: null,
   currentImages: [],
   userRoles: [],
+  imagePaneVisible: true,
   isLoading: false,
   error: null,
 
@@ -93,6 +99,14 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         currentSession: session,
         currentImages: images,
         isLoading: false,
+        imagePaneVisible: (() => {
+          try {
+            const v = localStorage.getItem(`imagePaneVisible:${sessionId}`)
+            if (v === 'true') return true
+            if (v === 'false') return false
+          } catch {}
+          return true
+        })(),
       })
 
       console.log('[SessionStore] セッションを読み込みました:', sessionId, images.length, '枚')
@@ -241,4 +255,21 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set({ userRoles: roles })
     try { localStorage.setItem('userRoles', JSON.stringify(roles)) } catch {}
   },
+  // 画像ペイン表示切り替え（セッション単位永続）
+  setImagePaneVisible: (visible: boolean) => {
+    const { currentSession } = get()
+    set({ imagePaneVisible: visible })
+    try {
+      if (currentSession) {
+        localStorage.setItem(`imagePaneVisible:${currentSession.id}`, String(visible))
+      }
+    } catch {}
+  },
 }))
+
+
+
+
+
+
+

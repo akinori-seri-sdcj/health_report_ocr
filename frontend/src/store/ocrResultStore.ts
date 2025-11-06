@@ -1,5 +1,29 @@
 import { create } from 'zustand'
 import { HealthReportOCRResult, ExaminationItem } from '../api/healthReportApi'
+import { useSessionStore } from './sessionStore'
+
+// Source image selector return type
+export type SourceImageRef = { url: string; pageCount: number }
+
+/**
+ * Select a reference to the first source image and total page count
+ * url is an ObjectURL for the first image Blob; caller should revoke via revokeSourceImageRef
+ */
+export function selectSourceImage(): SourceImageRef | null {
+  try {
+    const { currentImages } = useSessionStore.getState()
+    if (!currentImages || currentImages.length === 0) return null
+    const first = currentImages[0]
+    const url = URL.createObjectURL(first.imageData)
+    return { url, pageCount: currentImages.length }
+  } catch {
+    return null
+  }
+}
+
+export function revokeSourceImageRef(url: string) {
+  try { URL.revokeObjectURL(url) } catch {}
+}
 
 /**
  * OCR結果の状態管理
