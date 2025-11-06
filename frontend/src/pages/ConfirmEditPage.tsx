@@ -457,7 +457,7 @@ export const ConfirmEditPage: React.FC = () => {
                         項目番号
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        ���ږ�
+                        項目名
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         値
@@ -476,7 +476,8 @@ export const ConfirmEditPage: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {ocrResult.検査結果?.map((item, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
+                        {/* 行番号はCSSのカウンタで表示するため中身は空にする */}
+                        <td className="px-4 py-3 text-gray-700"></td>
                         <td className="px-4 py-3">
                           <input
                             type="text"
