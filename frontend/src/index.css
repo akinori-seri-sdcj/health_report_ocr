@@ -48,3 +48,13 @@ table.min-w-full tbody tr td:first-child::before {
   min-width: 2ch;
   text-align: right;
 }
+
+/* ------- Blink utility for prominent in-progress notices ------- */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s steps(2, start) infinite;
+}

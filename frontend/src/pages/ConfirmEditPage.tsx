@@ -150,7 +150,8 @@ export const ConfirmEditPage: React.FC = () => {
     }
 
     setProcessing(true)
-    setError(null)
+    // Do not use setError(null) here; it resets isProcessing in the store.
+    try { (useOCRResultStore.getState() as any).clearError?.() } catch {}
 
     try {
       // Blob配列を取得
@@ -271,11 +272,24 @@ export const ConfirmEditPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Processing overlay (blinking): show clear, centered banner */}
+      {isProcessing && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
+          aria-live="polite"
+          aria-atomic="true"
+          role="status"
+        >
+          <div className="animate-blink bg-yellow-100 text-yellow-900 border border-yellow-300 rounded px-5 py-2 shadow font-semibold">
+            OCR処理中
+          </div>
+        </div>
+      )}
       {/* ヘッダー */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">確認・編集</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{ocrResult ? '確認・編集' : '画像をアップロード'}</h1>
             <button
               onClick={handleBackToCamera}
               className="text-gray-600 hover:text-gray-900"
@@ -439,8 +453,11 @@ export const ConfirmEditPage: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                        項目番号
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        項目名
+                        ���ږ�
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         値
@@ -459,6 +476,7 @@ export const ConfirmEditPage: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {ocrResult.検査結果?.map((item, index) => (
                       <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-700">{index + 1}</td>
                         <td className="px-4 py-3">
                           <input
                             type="text"
@@ -569,6 +587,8 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ image, index }) => {
     </div>
   )
 }
+
+
 
 
 

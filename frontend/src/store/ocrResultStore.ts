@@ -40,6 +40,7 @@ interface OCRResultState {
   setOCRResult: (result: HealthReportOCRResult) => void
   setProcessing: (isProcessing: boolean) => void
   setError: (error: string | null) => void
+  clearError: () => void
 
   // 編集機能
   updatePatientInfo: (name: string, date: string) => void
@@ -86,10 +87,19 @@ export const useOCRResultStore = create<OCRResultState>((set) => ({
    * エラーを設定
    */
   setError: (error) => {
-    set({
-      error,
-      isProcessing: false,
-    })
+    // When setting an actual error, also end processing. If null, just clear error.
+    if (error) {
+      set({ error, isProcessing: false })
+    } else {
+      set({ error: null })
+    }
+  },
+
+  /**
+   * Clear error without touching processing state
+   */
+  clearError: () => {
+    set({ error: null })
   },
 
   /**
