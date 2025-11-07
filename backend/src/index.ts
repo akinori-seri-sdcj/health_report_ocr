@@ -1,15 +1,15 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
-import dotenv from 'dotenv'
 import { logger } from './utils/logger'
 import { errorHandler } from './middleware/error-handler'
 import healthReportRoutes from './routes/health-report.routes'
+import auditRoutes from './routes/audit.routes'
 import { healthCheck } from './controllers/health-report.controller'
 
-// 環境変数の読み込み
-dotenv.config()
+// dotenv is already loaded via the side-effect import above
 
 const app = express()
 const PORT = process.env.PORT || 8080
@@ -43,6 +43,7 @@ app.get('/', (req, res) => {
 
 // APIルート
 app.use('/process-health-report', healthReportRoutes)
+app.use('/audit', auditRoutes)
 
 // エラーハンドリング
 app.use(errorHandler)

@@ -16,7 +16,7 @@ services:
       - /app/node_modules
     environment:
       # バックエンドAPIのURL（開発環境では直接アクセス）
-      - VITE_API_URL=http://localhost:8080
+      - VITE_API_URL=/api
     networks:
       - health_ocr_network
     # バックエンドの起動を待つ必要はないが、依存関係を明示
