@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
@@ -45,6 +45,7 @@ export const ConfirmEditPage: React.FC = () => {
   const [exportMessage, setExportMessage] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [sourceImageUrl, setSourceImageUrl] = useState<string | null>(null); const [viewerPage, setViewerPage] = useState<number>(0)
+  const dateInputRef = useRef<HTMLInputElement | null>(null)
 
   // セッションの初期化
   useEffect(() => {
@@ -339,7 +340,7 @@ useEffect(() => {
                 <h2 className="text-lg font-semibold">�B�e�����摜</h2>
 
                 {/* ファイルアップロードボタン */}
-                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition">
+                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium text-black transition">
                   <input
                     type="file"
                     accept="image/*"
@@ -452,7 +453,7 @@ useEffect(() => {
                     type="text"
                     value={ocrResult.受診者情報?.氏名 || ''}
                     onChange={(e) => handlePatientInfoChange('氏名', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="氏名が抽出されなかった場合は手入力してください"
                   />
                 </div>
@@ -464,7 +465,7 @@ useEffect(() => {
                     type="date"
                     value={ocrResult.受診者情報?.受診日 || ''}
                     onChange={(e) => handlePatientInfoChange('受診日', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="受診日が抽出されなかった場合は手入力してください"
                   />
                 </div>
@@ -510,7 +511,7 @@ useEffect(() => {
                             onChange={(e) =>
                               handleItemChange(index, '項目名', e.target.value)
                             }
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -518,7 +519,7 @@ useEffect(() => {
                             type="text"
                             value={item.値 || ''}
                             onChange={(e) => handleItemChange(index, '値', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -526,7 +527,7 @@ useEffect(() => {
                             type="text"
                             value={item.単位 || ''}
                             onChange={(e) => handleItemChange(index, '単位', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -534,7 +535,7 @@ useEffect(() => {
                             type="text"
                             value={item.判定 || ''}
                             onChange={(e) => handleItemChange(index, '判定', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
