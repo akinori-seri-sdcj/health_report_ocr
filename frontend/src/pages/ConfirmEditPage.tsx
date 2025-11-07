@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
@@ -6,7 +6,6 @@ import { processHealthReport } from '../api/healthReportApi'
 import ExportModal from '../components/ExportModal'
 import { ImagePreview } from '../components/ImagePreview'
 import { exportData } from '../services/export.service'
-import { currentUserCanExport } from '../services/permission.service'
 
 /**
  * 確認・編集画面
@@ -44,8 +43,6 @@ export const ConfirmEditPage: React.FC = () => {
   const [selectedRowIndices] = useState<number[]>([])
   const [exportMessage, setExportMessage] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
-  const [sourceImageUrl, setSourceImageUrl] = useState<string | null>(null); const [viewerPage, setViewerPage] = useState<number>(0)
-  const dateInputRef = useRef<HTMLInputElement | null>(null)
 
   // セッションの初期化
   useEffect(() => {
@@ -99,27 +96,7 @@ export const ConfirmEditPage: React.FC = () => {
 useEffect(() => {
   try { (useSessionStore.getState() as any).loadViewerState?.() } catch {}
 }, [currentSession])
-  // Source image URL for preview on Confirm/Edit (first image)
-  useEffect(() => {
-    let prev: string | null = null
-    if (currentImages && currentImages.length > 0) {
-      try {
-        const url = URL.createObjectURL(currentImages[0].imageData)
-        setSourceImageUrl(url)
-        prev = url
-      } catch (e) {
-        console.warn('Failed to create preview URL', e)
-        setSourceImageUrl(null)
-      }
-    } else {
-      setSourceImageUrl(null)
-    }
-    return () => {
-      if (prev) {
-        try { URL.revokeObjectURL(prev) } catch {}
-      }
-    }
-  }, [currentImages])
+  // Source image preview is handled via the store's viewer state
 
   /**
    * ファイルアップロード
@@ -181,10 +158,14 @@ useEffect(() => {
   const handlePatientInfoChange = (field: '氏名' | '受診日', value: string) => {
     if (!ocrResult) return
 
+    const info = ocrResult.受診者情報 || {}
+    const currentName = info.氏名 ?? ''
+    const currentDate = info.受診日 ?? ''
+
     if (field === '氏名') {
-      updatePatientInfo(value, ocrResult.受診者情報.受診日)
+      updatePatientInfo(value, currentDate)
     } else {
-      updatePatientInfo(ocrResult.受診者情報.氏名, value)
+      updatePatientInfo(currentName, value)
     }
   }
 
@@ -196,7 +177,7 @@ useEffect(() => {
     field: '項目名' | '値' | '単位' | '判定',
     value: string
   ) => {
-    if (!ocrResult) return
+    if (!ocrResult || !ocrResult.検査結果 || !ocrResult.検査結果[index]) return
 
     const item = { ...ocrResult.検査結果[index] }
     if (field === '単位' || field === '判定') {
@@ -221,7 +202,6 @@ useEffect(() => {
   }
 
   // Export modal open/close (placeholder only)
-  const handleOpenExport = () => setExportOpen(true)
   const handleCloseExport = () => setExportOpen(false)
   const handleConfirmExport = async (
     format: 'xlsx' | 'csv',
@@ -273,8 +253,6 @@ useEffect(() => {
     isProcessing,
     error,
   })
-
-  const hasRows = !!ocrResult && (((ocrResult as any)['検査結果']?.length || 0) > 0)
 
   return (
     <div className="min-h-screen bg-gray-50">

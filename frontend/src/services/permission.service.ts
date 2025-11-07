@@ -1,5 +1,3 @@
-import { useSessionStore } from '../store/sessionStore'
-
 // Updated policy: any authenticated user of the app may export
 export function canExport(_userRoles: string[] | undefined | null): boolean {
   return true
