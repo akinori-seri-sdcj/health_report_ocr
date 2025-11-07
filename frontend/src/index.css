@@ -27,3 +27,34 @@ body {
 #root {
   width: 100%;
 }
+
+/* ------- OCR Confirm Edit: show row numbers to the left of item name ------- */
+table.min-w-full tbody {
+  counter-reset: ocrRow;
+}
+table.min-w-full tbody tr {
+  counter-increment: ocrRow;
+}
+table.min-w-full tbody tr td:first-child {
+  position: relative;
+}
+table.min-w-full tbody tr td:first-child::before {
+  content: counter(ocrRow);
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: #374151; /* gray-700 */
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: right;
+}
+
+/* ------- Blink utility for prominent in-progress notices ------- */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s steps(2, start) infinite;
+}

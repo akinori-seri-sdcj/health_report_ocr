@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
 import { processHealthReport } from '../api/healthReportApi'
+import ExportModal from '../components/ExportModal'
+import { ImagePreview } from '../components/ImagePreview'
+import { exportData } from '../services/export.service'
+import { currentUserCanExport } from '../services/permission.service'
 
 /**
  * 確認・編集画面
@@ -13,7 +17,12 @@ export const ConfirmEditPage: React.FC = () => {
   const navigate = useNavigate()
 
   // セッション情報
-  const { currentImages, currentSession, createSession, loadSession, addImage } = useSessionStore()
+  const { currentImages, currentSession, createSession, loadSession, addImage, imagePaneVisible, setImagePaneVisible } = useSessionStore()
+  // Fallback guards in case older bundle lacks new store fields
+  const paneVisible = (typeof imagePaneVisible !== 'undefined' ? imagePaneVisible : true)
+  const setPaneVisible = (v: boolean) => {
+    try { setImagePaneVisible?.(v) } catch {}
+  }
 
   // OCR結果
   const {
@@ -30,6 +39,13 @@ export const ConfirmEditPage: React.FC = () => {
 
   // 初期化状態
   const [isInitializing, setIsInitializing] = useState(true)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [selectedRowIndices] = useState<number[]>([])
+  const [exportMessage, setExportMessage] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
+  const [sourceImageUrl, setSourceImageUrl] = useState<string | null>(null); const [viewerPage, setViewerPage] = useState<number>(0)
+  const dateInputRef = useRef<HTMLInputElement | null>(null)
 
   // セッションの初期化
   useEffect(() => {
@@ -78,6 +94,33 @@ export const ConfirmEditPage: React.FC = () => {
     }
   }, [isInitializing, currentSession, currentImages])
 
+
+// Load viewer state when session becomes available
+useEffect(() => {
+  try { (useSessionStore.getState() as any).loadViewerState?.() } catch {}
+}, [currentSession])
+  // Source image URL for preview on Confirm/Edit (first image)
+  useEffect(() => {
+    let prev: string | null = null
+    if (currentImages && currentImages.length > 0) {
+      try {
+        const url = URL.createObjectURL(currentImages[0].imageData)
+        setSourceImageUrl(url)
+        prev = url
+      } catch (e) {
+        console.warn('Failed to create preview URL', e)
+        setSourceImageUrl(null)
+      }
+    } else {
+      setSourceImageUrl(null)
+    }
+    return () => {
+      if (prev) {
+        try { URL.revokeObjectURL(prev) } catch {}
+      }
+    }
+  }, [currentImages])
+
   /**
    * ファイルアップロード
    */
@@ -113,7 +156,8 @@ export const ConfirmEditPage: React.FC = () => {
     }
 
     setProcessing(true)
-    setError(null)
+    // Do not use setError(null) here; it resets isProcessing in the store.
+    try { (useOCRResultStore.getState() as any).clearError?.() } catch {}
 
     try {
       // Blob配列を取得
@@ -168,16 +212,51 @@ export const ConfirmEditPage: React.FC = () => {
    * Excel生成ページへ
    */
   const handleProceedToExcel = () => {
-    if (!ocrResult) {
-      alert('OCR結果がありません')
+    if (!ocrResult || (ocrResult.検査結果?.length ?? 0) === 0) {
+      alert('エクスポート可能な行がありません')
       return
     }
+    // Reuse this button to trigger export options
+    setExportOpen(true)
+  }
 
-    // セッションIDをクリア（次回カメラページで新しいセッション）
-    localStorage.removeItem('currentSessionId')
-
-    // TODO: 2.6 Excel生成ページに遷移
-    navigate('/generate-excel')
+  // Export modal open/close (placeholder only)
+  const handleOpenExport = () => setExportOpen(true)
+  const handleCloseExport = () => setExportOpen(false)
+  const handleConfirmExport = async (
+    format: 'xlsx' | 'csv',
+    scope: 'filtered' | 'selected' | 'all',
+    encoding?: 'utf-8' | 'shift_jis'
+  ) => {
+    try {
+      setExporting(true)
+      let effectiveScope: 'filtered' | 'selected' = scope === 'all' ? 'filtered' : (scope as any)
+      // None-selected handling for 'selected' scope
+      if (effectiveScope === 'selected' && selectedRowIndices.length === 0) {
+        const proceed = window.confirm('選択された行がありません。絞り込み済みの全行をエクスポートしますか？')
+        if (!proceed) {
+          setExportMessage('Export canceled.')
+          setExportOpen(false)
+          setExporting(false)
+          return
+        }
+        effectiveScope = 'filtered'
+      }
+      await exportData(format, effectiveScope, encoding, selectedRowIndices)
+      setExportMessage(`Exported ${format.toUpperCase()} successfully.`)
+      setExportError(null)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Export failed'
+      setExportError(msg)
+      setExportMessage(null)
+    } finally {
+      setExportOpen(false)
+      setExporting(false)
+    }
+  }
+  const handleCancelExport = () => {
+    setExportMessage('Export canceled.')
+    setExportError(null)
   }
 
   /**
@@ -195,13 +274,28 @@ export const ConfirmEditPage: React.FC = () => {
     error,
   })
 
+  const hasRows = !!ocrResult && (((ocrResult as any)['検査結果']?.length || 0) > 0)
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Processing overlay (blinking): show clear, centered banner */}
+      {isProcessing && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
+          aria-live="polite"
+          aria-atomic="true"
+          role="status"
+        >
+          <div className="animate-blink bg-yellow-100 text-yellow-900 border border-yellow-300 rounded px-5 py-2 shadow font-semibold">
+            OCR処理中
+          </div>
+        </div>
+      )}
       {/* ヘッダー */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">確認・編集</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{ocrResult ? '確認・編集' : '画像をアップロード'}</h1>
             <button
               onClick={handleBackToCamera}
               className="text-gray-600 hover:text-gray-900"
@@ -213,6 +307,23 @@ export const ConfirmEditPage: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setPaneVisible(!paneVisible)}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
+            aria-pressed={paneVisible}
+            aria-label={paneVisible ? '画像パネルを隠す' : '画像パネルを表示'}
+          >
+            {paneVisible ? '画像を隠す' : '画像を表示'}
+          </button>
+        </div>
+        {/* Export status messages (placeholder) */}
+        {exportMessage && (
+          <div className="mb-4 bg-blue-50 text-blue-700 px-4 py-2 rounded">{exportMessage}</div>
+        )}
+        {exportError && (
+          <div className="mb-4 bg-red-50 text-red-700 px-4 py-2 rounded">{exportError}</div>
+        )}
         {/* 初期化中 */}
         {isInitializing && (
           <div className="text-center py-12">
@@ -226,10 +337,10 @@ export const ConfirmEditPage: React.FC = () => {
           <>
             <section className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">撮影した画像</h2>
+                <h2 className="text-lg font-semibold">�B�e�����摜</h2>
 
                 {/* ファイルアップロードボタン */}
-                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition">
+                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium text-black transition">
                   <input
                     type="file"
                     accept="image/*"
@@ -239,6 +350,8 @@ export const ConfirmEditPage: React.FC = () => {
                   />
                   📁 画像を追加
                 </label>
+
+                {/* Export button removed per spec (single entry via bottom button) */}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -286,7 +399,7 @@ export const ConfirmEditPage: React.FC = () => {
             {/* エラー表示 */}
             {error && (
               <section className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-red-800 mb-2">エラー</h2>
+                <h2 className="text-lg font-semibold text-red-800 mb-2">�G���[</h2>
                 <p className="text-red-600">{error}</p>
                 <button
                   onClick={handleStartOCR}
@@ -300,9 +413,37 @@ export const ConfirmEditPage: React.FC = () => {
             {/* OCR結果の表示・編集 */}
             {ocrResult && (
               <>
+                {/* 読み取り元画像（デスクトップは右側に固定表示） */}
+                {currentImages.length > 0 && paneVisible && (
+                  <section className="bg-white rounded-lg shadow p-3 mb-6 sticky top-0 z-20">
+                    <div className="flex items-center justify-between mb-3"><h2 className="text-lg font-semibold">読み取り元画像</h2></div>
+                    <div className="flex items-center gap-2 text-sm mb-2">
+                      <span className="text-gray-600">高さ:</span>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('30vh') } catch {} }} className={`px-2 py-1 rounded ${((useSessionStore.getState() as any).viewerState?.heightPreset==='30vh')?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>30vh</button>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('40vh') } catch {} }} className={`px-2 py-1 rounded ${(!((useSessionStore.getState() as any).viewerState) || (useSessionStore.getState() as any).viewerState?.heightPreset==='40vh')?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>40vh</button>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('50vh') } catch {} }} className={`px-2 py-1 rounded ${(useSessionStore.getState() as any).viewerState?.heightPreset==='50vh'?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>50vh</button>
+                    </div>
+                    <div className="w-full overflow-auto" style={{ height: (useSessionStore.getState() as any).viewerState?.heightPreset || '40vh' }}>
+                      <ImagePreview
+                        image={currentImages[((useSessionStore.getState() as any).viewerState?.pageIndex || 0)] || currentImages[0]}
+                        onDelete={() => {}}
+                        showControls={false}
+                        objectFit="contain"
+                        viewerControls={true}
+                        initialZoom={(useSessionStore.getState() as any).viewerState?.zoom}
+                        initialOffset={(useSessionStore.getState() as any).viewerState?.pan}
+                        onZoomChange={(z) => { try { (useSessionStore.getState() as any).setViewerZoom?.(z) } catch {} }}
+                        onPanChange={(o) => { try { (useSessionStore.getState() as any).setViewerPan?.(o) } catch {} }}
+                        pages={currentImages}
+                        pageIndex={(useSessionStore.getState() as any).viewerState?.pageIndex || 0}
+                        onPageChange={(i) => { try { (useSessionStore.getState() as any).setViewerPageIndex?.(i) } catch {} }}
+                      />
+                    </div>
+                  </section>
+                )}
                 {/* 受診者情報 */}
                 <section className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-lg font-semibold mb-4">受診者情報</h2>
+              <h2 className="text-lg font-semibold mb-4">患者情報</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -312,7 +453,7 @@ export const ConfirmEditPage: React.FC = () => {
                     type="text"
                     value={ocrResult.受診者情報?.氏名 || ''}
                     onChange={(e) => handlePatientInfoChange('氏名', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="氏名が抽出されなかった場合は手入力してください"
                   />
                 </div>
@@ -324,7 +465,7 @@ export const ConfirmEditPage: React.FC = () => {
                     type="date"
                     value={ocrResult.受診者情報?.受診日 || ''}
                     onChange={(e) => handlePatientInfoChange('受診日', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     placeholder="受診日が抽出されなかった場合は手入力してください"
                   />
                 </div>
@@ -338,6 +479,9 @@ export const ConfirmEditPage: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                        項目番号
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         項目名
                       </th>
@@ -358,6 +502,8 @@ export const ConfirmEditPage: React.FC = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {ocrResult.検査結果?.map((item, index) => (
                       <tr key={index} className="hover:bg-gray-50">
+                        {/* 行番号はCSSのカウンタで表示するため中身は空にする */}
+                        <td className="px-4 py-3 text-gray-700"></td>
                         <td className="px-4 py-3">
                           <input
                             type="text"
@@ -365,7 +511,7 @@ export const ConfirmEditPage: React.FC = () => {
                             onChange={(e) =>
                               handleItemChange(index, '項目名', e.target.value)
                             }
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -373,7 +519,7 @@ export const ConfirmEditPage: React.FC = () => {
                             type="text"
                             value={item.値 || ''}
                             onChange={(e) => handleItemChange(index, '値', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -381,7 +527,7 @@ export const ConfirmEditPage: React.FC = () => {
                             type="text"
                             value={item.単位 || ''}
                             onChange={(e) => handleItemChange(index, '単位', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -389,7 +535,7 @@ export const ConfirmEditPage: React.FC = () => {
                             type="text"
                             value={item.判定 || ''}
                             onChange={(e) => handleItemChange(index, '判定', e.target.value)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900"
+                            className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 text-gray-900 bg-white"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -425,6 +571,16 @@ export const ConfirmEditPage: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Export Modal (centered overlay) */}
+      <ExportModal
+        open={exportOpen}
+        onClose={handleCloseExport}
+        onConfirm={handleConfirmExport}
+        onCancel={handleCancelExport}
+        defaultFormat="xlsx"
+        busy={exporting}
+      />
     </div>
   )
 }
@@ -458,3 +614,12 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ image, index }) => {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+

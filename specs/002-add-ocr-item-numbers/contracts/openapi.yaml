@@ -1,0 +1,96 @@
+openapi: 3.0.3
+info:
+  title: OCR Results Numbering API (Conceptual)
+  version: 0.1.0
+  description: Contracts to support OCR results display numbering and exports
+servers:
+  - url: https://example.invalid
+paths:
+  /ocr-results/{docId}/items:
+    get:
+      summary: Get OCR result items with stable IDs
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: section
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Items returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcrItemsResponse'
+  /ocr-results/{docId}/export:
+    get:
+      summary: Export OCR results including item numbers
+      parameters:
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [pdf, csv]
+      responses:
+        '200':
+          description: Export file stream
+          content:
+            application/pdf: {}
+            text/csv: {}
+components:
+  schemas:
+    OcrItem:
+      type: object
+      required: [id, label, value]
+      properties:
+        id:
+          type: string
+          description: Stable identifier (domain-defined)
+        sectionId:
+          type: string
+        label:
+          type: string
+        value:
+          oneOf:
+            - type: string
+            - type: number
+    OcrItemsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OcrItem'
+        numbering:
+          type: array
+          description: Mapping itemId -> number for global continuous numbering
+          items:
+            type: object
+            required: [itemId, number]
+            properties:
+              itemId:
+                type: string
+              number:
+                type: integer
+

@@ -198,6 +198,132 @@ docker-compose up -d
 - ブラウザのカメラ権限を確認
 - 自己署名証明書の警告を「続行」で許可
 
+## 🚀 Vercelへのデプロイ（試作品配布用）
+
+このプロジェクトはVercelモノレポ構成でデプロイできます。開発環境（Docker Compose）はそのまま維持されます。
+
+### 前提条件
+
+- GitHubアカウント
+- Vercelアカウント（無料プランでOK）
+- リポジトリがGitHubにプッシュされていること
+
+### デプロイ手順
+
+#### 1. 依存パッケージのインストール
+
+```bash
+# バックエンドに @vercel/node を追加
+cd backend
+npm install
+cd ..
+```
+
+#### 2. GitHubへプッシュ
+
+```bash
+git add .
+git commit -m "Add Vercel deployment configuration"
+git push origin main
+```
+
+#### 3. Vercelでプロジェクト作成
+
+1. [Vercel](https://vercel.com)にログイン
+2. 「Add New Project」をクリック
+3. GitHubリポジトリを選択（`health_report_ocr`）
+4. 以下の設定を確認：
+   - **Framework Preset**: `Other`
+   - **Root Directory**: 空欄（リポジトリルート）
+   - **Build Command**: 自動検出（`vercel.json`で設定済み）
+   - **Output Directory**: 自動検出（`frontend/dist`）
+
+#### 4. 環境変数の設定
+
+Vercelプロジェクト設定の「Environment Variables」で以下を追加：
+
+| 変数名 | 値 | 環境 |
+|--------|-----|------|
+| `OPENAI_API_KEY` | `sk-your-api-key-here` | Production, Preview, Development |
+| `CORS_ORIGIN` | `https://your-app.vercel.app` | Production（デプロイ後に設定） |
+
+**注意**: 
+- `OPENAI_API_KEY`は必須です
+- `CORS_ORIGIN`は初回デプロイ後、Vercelが割り当てたURLを設定してください
+
+#### 5. デプロイ実行
+
+「Deploy」ボタンをクリックすると自動デプロイが開始されます（約3-5分）。
+
+#### 6. デプロイ完了後の確認
+
+デプロイが完了したら、以下をテスト：
+
+```bash
+# ヘルスチェック
+curl https://your-app.vercel.app/api/health
+
+# レスポンス例
+{
+  "status": "ok",
+  "timestamp": "2025-11-07T...",
+  "environment": "production",
+  "services": {
+    "llm": "healthy"
+  }
+}
+```
+
+#### 7. CORS設定の更新（初回のみ）
+
+1. Vercelプロジェクト設定の「Environment Variables」を開く
+2. `CORS_ORIGIN`を`https://your-app.vercel.app`（実際のURL）に更新
+3. 再デプロイ（「Redeploy」）
+
+### デプロイされるエンドポイント
+
+- **フロントエンド**: `https://your-app.vercel.app/`
+- **API**: `https://your-app.vercel.app/api/`
+  - `GET /api/health` - ヘルスチェック
+  - `POST /api/process-health-report` - OCR処理
+  - `POST /api/audit/exports` - 監査ログ
+
+### 自動デプロイ
+
+- `main`ブランチへのプッシュ → 本番環境へ自動デプロイ
+- PRの作成 → プレビュー環境が自動生成
+
+### ローカル開発との共存
+
+Vercelデプロイ設定を追加しても、ローカル開発環境は変更ありません：
+
+```bash
+# ローカル開発（従来通り）
+docker-compose up -d
+# → http://localhost:5173 (frontend)
+# → http://localhost:8080 (backend)
+```
+
+### トラブルシューティング
+
+#### デプロイが失敗する
+
+- ビルドログを確認（Vercelダッシュボード）
+- `backend/package.json`の依存関係を確認
+- 環境変数が正しく設定されているか確認
+
+#### APIが404エラーを返す
+
+- `/api/health`エンドポイントでヘルスチェック
+- `vercel.json`のルーティング設定を確認
+- Vercelの関数ログを確認
+
+#### CORS エラーが発生する
+
+- `CORS_ORIGIN`環境変数が正しく設定されているか確認
+- フロントエンドのURLと一致しているか確認
+- 再デプロイが必要な場合があります
+
 ## 📚 ドキュメント
 
 - [詳細設計書](spec.md) - アプリケーションの詳細仕様

@@ -10,6 +10,78 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Quick runtime fix: replace mojibake headings and force black color
+      (function () {
+        function fixHeadings() {
+          try {
+            var nodes = document.querySelectorAll('h2.text-lg.font-semibold');
+            nodes.forEach(function (el, idx) {
+              var txt = (el.textContent || '');
+              if (txt.indexOf('\uFFFD') !== -1 || txt.indexOf('�') !== -1) {
+                el.textContent = idx === 0 ? 'アップロード画像' : txt.replace(/�/g, '');
+                el.style.color = '#000';
+              }
+            });
+          } catch (e) { /* noop */ }
+        }
+        function enhanceDateInputs() {
+          try {
+            var inputs = document.querySelectorAll('input[type="date"]');
+            inputs.forEach(function (input) {
+              var el = input;
+              if (el.getAttribute('data-enhanced-calendar') === '1') return;
+              var parent = el.parentElement;
+              if (!parent) return;
+              // Ensure parent is positioned for absolute icon placement
+              if (getComputedStyle(parent).position === 'static') {
+                parent.style.position = 'relative';
+              }
+              // Increase right padding to avoid overlap
+              var currentPR = parseFloat(getComputedStyle(el).paddingRight || '0');
+              if (currentPR < 36) {
+                el.style.paddingRight = '2.5rem';
+              }
+              // Insert a calendar icon button
+              var btn = document.createElement('button');
+              btn.type = 'button';
+              btn.setAttribute('aria-label', 'カレンダーから選択');
+              btn.style.position = 'absolute';
+              btn.style.right = '0.5rem';
+              btn.style.top = '50%';
+              btn.style.transform = 'translateY(-50%)';
+              btn.style.display = 'flex';
+              btn.style.alignItems = 'center';
+              btn.style.color = '#6b7280'; // text-gray-500
+              btn.style.background = 'transparent';
+              btn.style.border = 'none';
+              btn.style.padding = '0';
+              btn.style.cursor = 'pointer';
+              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm12 7H5v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9ZM6 7h12V6H6v1Z"/></svg>';
+              btn.addEventListener('click', function () {
+                try {
+                  // @ts-ignore
+                  if (typeof el.showPicker === 'function') el.showPicker(); else el.focus();
+                } catch (_) { el.focus(); }
+              });
+              parent.appendChild(btn);
+              el.setAttribute('data-enhanced-calendar', '1');
+            });
+          } catch (e) { /* noop */ }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+          var root = document.getElementById('root');
+          fixHeadings();
+          enhanceDateInputs();
+          if (root && 'MutationObserver' in window) {
+            var mo = new MutationObserver(function () { fixHeadings(); });
+            mo.observe(root, { childList: true, subtree: true });
+            var mo2 = new MutationObserver(function () { enhanceDateInputs(); });
+            mo2.observe(root, { childList: true, subtree: true });
+          }
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
