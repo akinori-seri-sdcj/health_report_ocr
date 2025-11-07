@@ -1,7 +1,11 @@
-# Contracts: Show Source Image Next to OCR Results
+# Contracts: OCR 読み取り元画像の上部表示（確認・編集）
 
-No new backend endpoints or contracts are required for this feature.
+本機能はUIのみの変更であり、バックエンドAPIの新設は不要です。
+既存エンドポイント（参考）:
 
-UI consumes existing record data and a secure reference to the source image.
-If future pagination of multi-page sources requires a list API, add it here.
+- POST `/api/health-report/`（画像アップロード → OCR抽出）
+- GET `/api/audit/*`（既存の監査系がある場合）
 
+将来拡張（検討のみ）:
+- 画像メタ（回転/ページ情報）をサーバに保存する場合は、PATCH/GET を追加。
+- ただし現行要件ではクライアントセッション内で完結。

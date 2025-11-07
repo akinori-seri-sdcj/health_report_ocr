@@ -29,9 +29,9 @@ npm test; npm run lint
 TypeScript (frontend), TypeScript (backend): Follow standard conventions
 
 ## Recent Changes
+- base: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - base: Added TypeScript 5.x; React 18.x + React, Zustand, React Router; reuse existing `frontend/src/components/ImagePreview.tsx` where feasible; no new libraries planned
 - base: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
-- 001-export-ocr-results: Added TypeScript (frontend and backend) + exceljs (Excel export), encoding-japanese (Shift_JIS CSV), existing table/store components
 
 
 <!-- MANUAL ADDITIONS START -->

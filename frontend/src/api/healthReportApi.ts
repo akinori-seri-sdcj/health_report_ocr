@@ -2,7 +2,12 @@
  * バックエンドAPI通信クライアント
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+// Prefer relative '/api' under HTTPS (behind Nginx), fallback to localhost:8080 in plain HTTP dev
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined'
+    ? (window.location.protocol === 'https:' ? '/api' : 'http://localhost:8080')
+    : '/api')
 
 /**
  * 検査結果項目

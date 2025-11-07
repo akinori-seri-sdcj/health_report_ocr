@@ -112,5 +112,6 @@ Rationale: Predictable change management preserves velocity and traceability.
 - Branch Creation Policy: Automatic branch creation for `specify` commands is
   DISABLED. Contributors commit specification artifacts directly to the current
   working branch unless a major feature/fix explicitly requires a branch.
+- Editing documents: do not overwrite documents (because I can not refer to old documents) but append (add) new contents.
 
 **Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): Original adoption date unknown | **Last Amended**: 2025-11-06

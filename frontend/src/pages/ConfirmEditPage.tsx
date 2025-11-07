@@ -93,6 +93,11 @@ export const ConfirmEditPage: React.FC = () => {
     }
   }, [isInitializing, currentSession, currentImages])
 
+
+// Load viewer state when session becomes available
+useEffect(() => {
+  try { (useSessionStore.getState() as any).loadViewerState?.() } catch {}
+}, [currentSession])
   // Source image URL for preview on Confirm/Edit (first image)
   useEffect(() => {
     let prev: string | null = null
@@ -301,6 +306,16 @@ export const ConfirmEditPage: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setPaneVisible(!paneVisible)}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
+            aria-pressed={paneVisible}
+            aria-label={paneVisible ? '画像パネルを隠す' : '画像パネルを表示'}
+          >
+            {paneVisible ? '画像を隠す' : '画像を表示'}
+          </button>
+        </div>
         {/* Export status messages (placeholder) */}
         {exportMessage && (
           <div className="mb-4 bg-blue-50 text-blue-700 px-4 py-2 rounded">{exportMessage}</div>
@@ -399,18 +414,28 @@ export const ConfirmEditPage: React.FC = () => {
               <>
                 {/* 読み取り元画像（デスクトップは右側に固定表示） */}
                 {currentImages.length > 0 && paneVisible && (
-                  <section className="bg-white rounded-lg shadow p-4 mb-6 lg:float-right lg:w-1/2 lg:ml-6">
+                  <section className="bg-white rounded-lg shadow p-3 mb-6 sticky top-0 z-20">
                     <div className="flex items-center justify-between mb-3"><h2 className="text-lg font-semibold">読み取り元画像</h2></div>
-                    <div className="w-full h-[60vh]">
+                    <div className="flex items-center gap-2 text-sm mb-2">
+                      <span className="text-gray-600">高さ:</span>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('30vh') } catch {} }} className={`px-2 py-1 rounded ${((useSessionStore.getState() as any).viewerState?.heightPreset==='30vh')?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>30vh</button>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('40vh') } catch {} }} className={`px-2 py-1 rounded ${(!((useSessionStore.getState() as any).viewerState) || (useSessionStore.getState() as any).viewerState?.heightPreset==='40vh')?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>40vh</button>
+                      <button onClick={() => { try { (useSessionStore.getState() as any).setViewerHeightPreset?.('50vh') } catch {} }} className={`px-2 py-1 rounded ${(useSessionStore.getState() as any).viewerState?.heightPreset==='50vh'?'bg-blue-600 text-white':'bg-gray-100 hover:bg-gray-200'}`}>50vh</button>
+                    </div>
+                    <div className="w-full overflow-auto" style={{ height: (useSessionStore.getState() as any).viewerState?.heightPreset || '40vh' }}>
                       <ImagePreview
-                        image={currentImages[viewerPage] || currentImages[0]}
+                        image={currentImages[((useSessionStore.getState() as any).viewerState?.pageIndex || 0)] || currentImages[0]}
                         onDelete={() => {}}
                         showControls={false}
                         objectFit="contain"
                         viewerControls={true}
+                        initialZoom={(useSessionStore.getState() as any).viewerState?.zoom}
+                        initialOffset={(useSessionStore.getState() as any).viewerState?.pan}
+                        onZoomChange={(z) => { try { (useSessionStore.getState() as any).setViewerZoom?.(z) } catch {} }}
+                        onPanChange={(o) => { try { (useSessionStore.getState() as any).setViewerPan?.(o) } catch {} }}
                         pages={currentImages}
-                        pageIndex={viewerPage}
-                        onPageChange={setViewerPage}
+                        pageIndex={(useSessionStore.getState() as any).viewerState?.pageIndex || 0}
+                        onPageChange={(i) => { try { (useSessionStore.getState() as any).setViewerPageIndex?.(i) } catch {} }}
                       />
                     </div>
                   </section>

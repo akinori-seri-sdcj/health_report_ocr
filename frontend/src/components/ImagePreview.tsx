@@ -16,6 +16,11 @@ export interface ImagePreviewProps {
   pages?: CapturedImage[]
   pageIndex?: number
   onPageChange?: (index: number) => void
+  // Persisted viewer state (optional)
+  initialZoom?: number
+  initialOffset?: { x: number; y: number }
+  onZoomChange?: (zoom: number) => void
+  onPanChange?: (offset: { x: number; y: number }) => void
 }
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error'
@@ -31,6 +36,10 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   pages,
   pageIndex,
   onPageChange,
+  initialZoom,
+  initialOffset,
+  onZoomChange,
+  onPanChange,
 }) => {
   const activeImage: CapturedImage = useMemo(() => {
     if (viewerControls && pages && typeof pageIndex === 'number' && pages[pageIndex]) {
@@ -45,6 +54,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [dragging, setDragging] = useState<boolean>(false)
   const dragStart = useRef<{ x: number; y: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   // Create ObjectURL for the active image and revoke on cleanup
   useEffect(() => {
@@ -68,13 +78,34 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
     if (zoom <= 1) setOffset({ x: 0, y: 0 })
   }, [zoom])
 
+  // Initialize from persisted state when page/image changes
+  useEffect(() => {
+    if (typeof initialZoom === 'number') {
+      setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, initialZoom)))
+    } else {
+      setZoom(1)
+    }
+    if (initialOffset) {
+      setOffset(initialOffset)
+    } else {
+      setOffset({ x: 0, y: 0 })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeImage, pageIndex])
+
   const changeZoom = (delta: number) => {
-    setZoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Number((z + delta).toFixed(2)))))
+    setZoom((z) => {
+      const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Number((z + delta).toFixed(2))))
+      try { onZoomChange && onZoomChange(next) } catch {}
+      return next
+    })
   }
 
   const resetView = () => {
     setZoom(1)
     setOffset({ x: 0, y: 0 })
+    try { onZoomChange && onZoomChange(1) } catch {}
+    try { onPanChange && onPanChange({ x: 0, y: 0 }) } catch {}
   }
 
   const onMouseDown: React.MouseEventHandler<HTMLImageElement> = (e) => {
@@ -85,7 +116,23 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
 
   const onMouseMove: React.MouseEventHandler<HTMLImageElement> = (e) => {
     if (!dragging || !dragStart.current) return
-    setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y })
+    const raw = { x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y }
+    // Bound pan within container based on current zoom
+    const cw = containerRef.current?.clientWidth || 0
+    const ch = containerRef.current?.clientHeight || 0
+    if (cw > 0 && ch > 0 && zoom > 1) {
+      const maxX = ((zoom - 1) * cw) / 2
+      const maxY = ((zoom - 1) * ch) / 2
+      const bounded = {
+        x: Math.max(-maxX, Math.min(maxX, raw.x)),
+        y: Math.max(-maxY, Math.min(maxY, raw.y)),
+      }
+      setOffset(bounded)
+      try { onPanChange && onPanChange(bounded) } catch {}
+    } else {
+      setOffset(raw)
+      try { onPanChange && onPanChange(raw) } catch {}
+    }
   }
 
   const endDrag = () => {
@@ -108,9 +155,23 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   }
 
   return (
-    <div className="relative group" tabIndex={viewerControls ? 0 : -1}>
+    <div
+      className="relative group"
+      tabIndex={viewerControls ? 0 : -1}
+      onKeyDown={viewerControls ? (e) => {
+        // Zoom controls
+        if (e.key === '+' || e.key === '=') { e.preventDefault(); changeZoom(0.1); return }
+        if (e.key === '-') { e.preventDefault(); changeZoom(-0.1); return }
+        if (e.key === '0') { e.preventDefault(); resetView(); return }
+        // Page navigation
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); return }
+        if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); return }
+      } : undefined}
+      role={viewerControls ? 'group' : undefined}
+      aria-label={viewerControls ? '画像ビューア' : undefined}
+    >
       {/* Image area */}
-      <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
+      <div ref={containerRef} className="aspect-video bg-gray-900 rounded-lg overflow-hidden relative">
         {loadState === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center text-white/80">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white/80"></div>
@@ -197,4 +258,3 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
     </div>
   )
 }
-

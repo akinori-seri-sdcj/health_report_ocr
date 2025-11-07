@@ -1,28 +1,30 @@
-# Quickstart: Show Source Image Next to OCR Results
+# Quickstart: 上部画像ペイン（確認・編集）
 
-## Implementation Steps
+## 概要
+- 縦配置（画像 上 / 結果 下）、上部画像ペインは sticky（40vh/35vh）
+- 画像は fit‑width、独立スクロール、右上ツールバー（ズーム±/リセット、前/次）
+- ズーム/パン/ページ/高さプリセットは同一レコードの確認中セッションで保持
 
-1) Wire image reference on Confirm/Edit
-- Ensure `frontend/src/pages/ConfirmEditPage.tsx` retrieves SourceImage for the current record (url, pageCount).
+## 実装ステップ（フロント）
+- レイアウト
+  - `frontend/src/pages/ConfirmEditPage.tsx` に sticky 上部ペインを追加（40vh/35vh）。
+  - 下部に結果（テーブル/フォーム）。上下は独立スクロール。
+- ビューア
+  - 既存 `ImagePreview` の `viewerControls`, `pages`, `pageIndex`, `onPageChange` を活用。
+  - 右上ツールバーにズーム±/リセット、前/次、倍率表示。
+  - キーボード操作（←/→ で前後、`+`/`-` で倍率、`0` でリセット等）を付与。
+- 状態保持
+  - Zustand のセッションストアに `viewerState`（zoom/pan/pageIndex/heightPreset）を追加。
+  - 「同一レコードの確認中セッション」キー（sessionId + recordId）で保持/復元。
+- 高さプリセット
+  - 30/40/50vh のプリセット切替UIを画像ペインに追加。選択はセッション内で保持。
+- アクセシビリティ
+  - 代替テキスト、ボタンの `aria-label`、フォーカス移動（Tab/Ctrl+矢印）を確認。
 
-2) Extend ImagePreview
-- Reuse `frontend/src/components/ImagePreview.tsx` to support:
-  - Fit-to-pane initial render (object-fit: contain)
-  - Zoom controls (50–200%), pan when zoomed, reset
-  - Simple page selector (Prev/Next, page indicator)
-  - Loading and error UI with retry
-  - Keyboard operability and ARIA labels
+## バックエンド
+- 変更なし（既存 `/api/health-report` を利用）。
 
-3) Layout
-- Desktop (≥1024px): two-pane layout showing image and results side-by-side without page-level horizontal scroll.
-- Small screens: stacked vertical views with standard vertical scroll.
-- Add a hide/show Image pane toggle; persist visibility in `sessionStore`.
-
-4) Performance & Privacy
-- Lazy-load images; keep UI responsive while loading.
-- Avoid logging sensitive content; mask paths in diagnostics if needed.
-
-5) Verification
-- Unit tests for ImagePreview behaviors (zoom, pan enablement, reset, paging).
-- Manual E2E on desktop and mobile viewport widths.
-
+## 検証
+- 2MB画像で初回表示 ≤ 1.5s（95%）
+- キーボードのみでズーム/ページ移動/リセット操作可能
+- 画面幅を変更しても横スクロール発生なし
