@@ -4,10 +4,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import { errorHandler } from '../backend/src/middleware/error-handler';
-import healthReportRoutes from '../backend/src/routes/health-report.routes';
-import auditRoutes from '../backend/src/routes/audit.routes';
-import { healthCheck } from '../backend/src/controllers/health-report.controller';
+import { errorHandler } from './backend-src/middleware/error-handler';
+import healthReportRoutes from './backend-src/routes/health-report.routes';
+import auditRoutes from './backend-src/routes/audit.routes';
+import { healthCheck } from './backend-src/controllers/health-report.controller';
 
 // Expressアプリの初期化（既存のバックエンドロジックを再利用）
 const app = express();
