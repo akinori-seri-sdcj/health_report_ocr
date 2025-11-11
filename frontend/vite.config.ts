@@ -88,8 +88,10 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
+      // In Docker, the frontend dev server runs in a container.
+      // Use the Docker service name to reach the backend, not localhost.
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://backend:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
