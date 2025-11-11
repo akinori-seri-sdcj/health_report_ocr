@@ -144,3 +144,6 @@
 {"session_id":"019a5bf7-ffd3-7702-a521-36d7d5ac143f","ts":1762490642,"text":"「確認・編集」画面において「受信日」を手で入力できますが、ボックスの右端をクリックするとカレンダーで日付を選択できます。それだけだと選択できるかどうかわからないのでアイコンを追加してそのような機能があることを明示してください。"}
 {"session_id":"019a5bf7-ffd3-7702-a521-36d7d5ac143f","ts":1762491021,"text":"今回のやり取りで直面した問題と解決方法について、社内共有できるようmdファイル形式でまとめてください。個別具体的な事例ではなく、汎用的に参考になる内容に調整してください。"}
 {"session_id":"019a5bf7-ffd3-7702-a521-36d7d5ac143f","ts":1762491831,"text":"Please make an user manual for this application written in Japanese."}
+{"session_id":"019a6d5d-c598-7ba1-b201-5ae91e0504d0","ts":1762771490,"text":"Run through the project. Please tell me setting file where OPEN AI key is described."}
+{"session_id":"019a6d5d-c598-7ba1-b201-5ae91e0504d0","ts":1762773299,"text":"tu-runo"}
+{"session_id":"019a6d5d-c598-7ba1-b201-5ae91e0504d0","ts":1762773378,"text":"ツール開発において使用している技術スタックについて手短に教えてください。例：フロントエンドはNode.js, バックエンドはTypescriptなど"}
