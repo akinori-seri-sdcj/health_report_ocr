@@ -1,9 +1,14 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const isDocker = env.DOCKER === '1' || !!env.COMPOSE_PROJECT_NAME
+  const proxyTarget = env.VITE_PROXY_TARGET || (isDocker ? 'http://backend:8080' : 'http://localhost:8080')
+
+  return {
   plugins: [
     react(),
     VitePWA({
@@ -66,7 +71,8 @@ export default defineConfig({
         // Service Workerのキャッシュ戦略
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/localhost\/api\/.*/i,
+            // 本番/開発を問わず、同一オリジンの /api/ だけを対象にする
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/api/'),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -89,7 +95,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: proxyTarget,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
@@ -100,4 +106,4 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   }
-})
+}})
