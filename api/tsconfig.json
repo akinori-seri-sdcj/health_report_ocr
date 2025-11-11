@@ -1,5 +1,4 @@
 {
-  "extends": "../backend/tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
     "target": "es2020",
@@ -12,7 +11,8 @@
     "resolveJsonModule": true,
     "isolatedModules": false,
     "noEmit": false,
-    "outDir": ".vercel/output"
+    "outDir": ".vercel/output",
+    "rootDir": "."
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules"]
