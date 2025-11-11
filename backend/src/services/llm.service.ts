@@ -5,10 +5,17 @@ import {
   validateHealthReportData,
 } from '../types/health-report.schema'
 
-// OpenAIクライアントの初期化
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// OpenAIクライアントを遅延初期化し、環境変数未設定時に安全に失敗させる
+let _openai: OpenAI | null = null
+const getOpenAI = (): OpenAI => {
+  if (_openai) return _openai
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured')
+  }
+  _openai = new OpenAI({ apiKey })
+  return _openai
+}
 
 // システムプロンプト
 const SYSTEM_PROMPT = `あなたは優秀なデータ入力アシスタントです。
@@ -130,7 +137,7 @@ export const extractHealthReportData = async (
     logger.info('OpenAI APIリクエスト送信中...')
     const startTime = Date.now()
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o', // または 'gpt-4-vision-preview'
       messages: [
         {
@@ -194,7 +201,7 @@ export const extractHealthReportData = async (
  */
 export const checkLLMHealth = async (): Promise<boolean> => {
   try {
-    await openai.models.list()
+    await getOpenAI().models.list()
     return true
   } catch (error) {
     logger.error('OpenAI API接続エラー:', error)

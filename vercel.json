@@ -3,10 +3,10 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install --prefix backend && npm install --prefix api",
   "functions": {
-    "api/index.ts": {
+    "api/**/*.ts": {
       "memory": 1024,
-      "maxDuration": 30,
-      "includeFiles": "backend/**"
+      "maxDuration": 60,
+      "includeFiles": "api/backend-src/**"
     }
   },
   "headers": [
