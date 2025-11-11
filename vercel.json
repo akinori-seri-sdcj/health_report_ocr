@@ -9,6 +9,9 @@
       "includeFiles": "api/backend-src/**"
     }
   },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
