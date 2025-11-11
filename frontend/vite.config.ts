@@ -68,6 +68,8 @@ export default defineConfig(({ mode }) => {
         ]
       },
       workbox: {
+        // Ensure navigations to /api/* are NOT handled by the SPA fallback
+        navigateFallbackDenylist: [/^\/api\//],
         // Service Workerのキャッシュ戦略
         runtimeCaching: [
           {
