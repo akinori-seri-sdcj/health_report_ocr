@@ -1,5 +1,5 @@
 # 健康診断結果OCRアプリケーション
-# Make a tiny change to guarantee a new build:
+# 任意の小変更を main（Production Branch）に push。
 
 紙媒体の健康診断結果をデジタル化し、有所見項目を効率的に抽出・管理するためのPWA（Progressive Web App）アプリケーションです。
 
