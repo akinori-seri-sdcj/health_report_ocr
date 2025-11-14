@@ -1,1 +1,5 @@
 windows_wsl_setup_acknowledged = true
+model = "gpt-5.1"
+
+[notice]
+hide_gpt5_1_migration_prompt = true
