@@ -3,3 +3,8 @@ model = "gpt-5.1"
 
 [notice]
 hide_gpt5_1_migration_prompt = true
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+

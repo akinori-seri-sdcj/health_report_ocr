@@ -19,6 +19,7 @@ export const errorHandler = (
     stack: err.stack,
     path: req.path,
     method: req.method,
+    // NOTE: 個人情報が含まれない技術的メタデータのみをログに出力する
   })
 
   // Standardize error payload shape for frontend consumption
