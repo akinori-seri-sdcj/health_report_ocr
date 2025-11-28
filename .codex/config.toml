@@ -1,5 +1,6 @@
 windows_wsl_setup_acknowledged = true
-model = "gpt-5.1"
+model = "gpt-5.1-codex-max"
 
 [notice]
 hide_gpt5_1_migration_prompt = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true

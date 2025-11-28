@@ -2,12 +2,8 @@
  * バックエンドAPI通信用クライアント
  */
 
-// Prefer relative '/api' under HTTPS (behind Nginx), fallback to localhost:8080 in plain HTTP dev
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined'
-    ? (window.location.protocol === 'https:' ? '/api' : 'http://localhost:8080')
-    : '/api')
+// Prefer same-origin API Route; allow override via VITE_API_URL for custom staging
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 /**
  * 検査結果1行分
@@ -55,7 +51,7 @@ export async function processHealthReport(
   console.log('[API] OCR処理開始:', images.length, '枚の画像')
 
   try {
-    const response = await fetch(`${API_BASE_URL}/process-health-report`, {
+    const response = await fetch(`${API_BASE_URL}/ocr`, {
       method: 'POST',
       body: formData,
     })
