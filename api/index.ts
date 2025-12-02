@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 // ランタイム環境チェック（不足している環境変数があれば明示的に返す）
 app.use('/api', (req, res, next) => {
   // /api/health は常に通し、詳細はハンドラ側で判定する
-  if (req.path === '/health') return next();
+  if (req.path === '/health' || req.path === '/ocr/health') return next();
   if (!process.env.OPENAI_API_KEY) {
     return res.status(500).json({
       error: {
@@ -44,6 +44,8 @@ app.use('/api', (req, res, next) => {
 
 // ルーティング（/api プレフィックス付き）
 app.get('/api/health', healthCheck);
+// API Routes互換のヘルスチェック
+app.get('/api/ocr/health', healthCheck);
 
 app.get('/api', (req, res) => {
   res.json({
@@ -51,7 +53,9 @@ app.get('/api', (req, res) => {
     version: '0.1.0',
     endpoints: {
       health: '/api/health',
+      healthOcr: '/api/ocr/health',
       processHealthReport: '/api/process-health-report',
+      ocr: '/api/ocr',
       audit: '/api/audit/exports',
       debugEnv: '/api/debug/env',
     },
@@ -65,6 +69,8 @@ app.get('/api/debug/env', (_req, res) => {
     CORS_ORIGIN: Boolean(process.env.CORS_ORIGIN),
   });
 });
+// Next API Routes 互換のエイリアス: /api/ocr に既存のOCRルートをマウント
+app.use('/api/ocr', healthReportRoutes);
 app.use('/api/process-health-report', healthReportRoutes);
 app.use('/api/audit', auditRoutes);
 
