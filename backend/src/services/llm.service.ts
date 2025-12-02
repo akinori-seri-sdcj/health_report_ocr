@@ -166,7 +166,7 @@ export const extractHealthReportData = async (
     logger.info('OpenAI APIリクエスト送信中...')
     const startTime = Date.now()
 
-    const response = await getOpenAI().chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-4o', // または 'gpt-4-vision-preview'
       messages: [
         {
