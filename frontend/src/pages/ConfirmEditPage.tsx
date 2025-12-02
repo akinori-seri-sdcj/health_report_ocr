@@ -96,11 +96,8 @@ export const ConfirmEditPage: React.FC = () => {
 useEffect(() => {
   try { (useSessionStore.getState() as any).loadViewerState?.() } catch {}
 }, [currentSession])
-<<<<<<< HEAD
   // Source image preview is handled via the store's viewer state
-
-=======
->>>>>>> 649b950 (2025-12-02  Fix TS build errors for OCR UI and CSV export)
+  // Source image preview is handled via the store's viewer state
   /**
    * ファイルアップロード
    */

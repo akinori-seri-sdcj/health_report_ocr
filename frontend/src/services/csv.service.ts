@@ -35,16 +35,10 @@ export async function buildCsvBlob(
   const content = buildCsvContent(data)
   if (encoding === 'shift_jis') {
     const bytes = await encodeShiftJIS('\uFEFF' + content) // include BOM for safety
-<<<<<<< HEAD
-    // Type assertion needed for strict TypeScript compatibility in build environments
-    const arrayBuffer = bytes.buffer.slice(0) as ArrayBuffer
-    return new Blob([arrayBuffer], { type: 'text/csv; charset=shift_jis' })
-=======
     // Ensure we pass an ArrayBuffer to Blob to satisfy DOM types
     const buffer = new ArrayBuffer(bytes.byteLength)
     new Uint8Array(buffer).set(new Uint8Array(bytes))
     return new Blob([buffer], { type: 'text/csv; charset=shift_jis' })
->>>>>>> 649b950 (2025-12-02  Fix TS build errors for OCR UI and CSV export)
   }
   // UTF-8 with BOM improves Excel compatibility
   const utf8WithBom = '\uFEFF' + content
