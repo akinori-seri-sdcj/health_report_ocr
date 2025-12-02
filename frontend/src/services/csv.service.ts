@@ -35,7 +35,9 @@ export async function buildCsvBlob(
   const content = buildCsvContent(data)
   if (encoding === 'shift_jis') {
     const bytes = await encodeShiftJIS('\uFEFF' + content) // include BOM for safety
-    return new Blob([bytes], { type: 'text/csv; charset=shift_jis' })
+    // Type assertion needed for strict TypeScript compatibility in build environments
+    const arrayBuffer = bytes.buffer.slice(0) as ArrayBuffer
+    return new Blob([arrayBuffer], { type: 'text/csv; charset=shift_jis' })
   }
   // UTF-8 with BOM improves Excel compatibility
   const utf8WithBom = '\uFEFF' + content

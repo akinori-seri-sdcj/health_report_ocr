@@ -129,7 +129,10 @@ export const useOCRResultStore = create<OCRResultState>((set) => ({
     set((state) => {
       if (!state.ocrResult) return state
 
-      const newItems = [...state.ocrResult.検査結果]
+      const currentItems = state.ocrResult.検査結果 ?? []
+      if (!currentItems[index]) return state
+
+      const newItems = [...currentItems]
       newItems[index] = item
 
       return {
@@ -149,10 +152,12 @@ export const useOCRResultStore = create<OCRResultState>((set) => ({
     set((state) => {
       if (!state.ocrResult) return state
 
+      const currentItems = state.ocrResult.検査結果 ?? []
+
       return {
         ocrResult: {
           ...state.ocrResult,
-          検査結果: [...state.ocrResult.検査結果, item],
+          検査結果: [...currentItems, item],
         },
       }
     })
@@ -166,7 +171,8 @@ export const useOCRResultStore = create<OCRResultState>((set) => ({
     set((state) => {
       if (!state.ocrResult) return state
 
-      const newItems = state.ocrResult.検査結果.filter((_, i) => i !== index)
+      const currentItems = state.ocrResult.検査結果 ?? []
+      const newItems = currentItems.filter((_, i) => i !== index)
 
       return {
         ocrResult: {

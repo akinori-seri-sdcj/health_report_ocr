@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { extractHealthReportData } from '../services/llm.service'
+import { extractHealthReportData, checkLLMHealth } from '../services/llm.service'
 import { logger } from '../utils/logger'
 
 /**
@@ -54,23 +54,24 @@ export const processHealthReport = async (
  * APIのヘルスチェック（拡張版）
  */
 export const healthCheck = async (
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
+  // ヘルスチェックはなるべく成功させ、詳細はpayloadに反映
+  let llmHealthy = false
   try {
-    const { checkLLMHealth } = await import('../services/llm.service')
-    const llmHealthy = await checkLLMHealth()
-
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      services: {
-        llm: llmHealthy ? 'healthy' : 'unhealthy',
-      },
-    })
-  } catch (error) {
-    next(error)
+    llmHealthy = await checkLLMHealth()
+  } catch {
+    llmHealthy = false
   }
+
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    services: {
+      llm: llmHealthy ? 'healthy' : 'unhealthy',
+    },
+  })
 }
