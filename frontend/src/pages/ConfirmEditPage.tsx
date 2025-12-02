@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '../store/sessionStore'
 import { useOCRResultStore } from '../store/ocrResultStore'
-import { processHealthReport } from '../api/healthReportApi'
+import { processHealthReport, type ExaminationItem } from '../api/healthReportApi'
 import ExportModal from '../components/ExportModal'
 import { ImagePreview } from '../components/ImagePreview'
 import { exportData } from '../services/export.service'
@@ -96,8 +96,11 @@ export const ConfirmEditPage: React.FC = () => {
 useEffect(() => {
   try { (useSessionStore.getState() as any).loadViewerState?.() } catch {}
 }, [currentSession])
+<<<<<<< HEAD
   // Source image preview is handled via the store's viewer state
 
+=======
+>>>>>>> 649b950 (2025-12-02  Fix TS build errors for OCR UI and CSV export)
   /**
    * ファイルアップロード
    */
@@ -478,7 +481,7 @@ useEffect(() => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {ocrResult.検査結果?.map((item, index) => (
+                    {ocrResult.検査結果?.map((item: ExaminationItem, index: number) => (
                       <tr key={index} className="hover:bg-gray-50">
                         {/* 行番号はCSSのカウンタで表示するため中身は空にする */}
                         <td className="px-4 py-3 text-gray-700"></td>
