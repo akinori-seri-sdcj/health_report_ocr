@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: 健康診断OCR API
+  version: "1.0.0"
+paths:
+  /api/ocr:
+    post:
+      summary: 健康診断書画像をOCRし構造化データを返す
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+                  maxItems: 10
+              required:
+                - images
+      responses:
+        "200":
+          description: 正常にOCR完了
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [true]
+                  data:
+                    type: object
+        "400":
+          description: 入力不備（枚数/サイズ/形式）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+        "500":
+          description: OCR処理失敗（外部API含む）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum: [false]
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string

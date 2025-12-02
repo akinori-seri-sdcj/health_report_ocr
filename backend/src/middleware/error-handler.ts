@@ -18,15 +18,15 @@ export const errorHandler = (
     statusCode,
     stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
   })
 
+  // Standardize error payload shape for frontend consumption
   res.status(statusCode).json({
-    error: {
-      message,
-      statusCode,
-      timestamp: new Date().toISOString(),
-      path: req.path
-    }
+    error: message,
+    details: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+    statusCode,
+    timestamp: new Date().toISOString(),
+    path: req.path,
   })
 }
