@@ -1,14 +1,6 @@
 {
-  "buildCommand": "node scripts/copy-backend.js && cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install --prefix backend && npm install --prefix api",
-  "functions": {
-    "api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 60,
-      "includeFiles": "api/backend-src/**"
-    }
-  },
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": ".next",
   "headers": [
     {
       "source": "/(.*)",
@@ -19,6 +11,7 @@
         }
       ]
     }
-  ]
+  ],
+  "ignoreCommand": "echo \"Skipping api/ and backend/ for Next.js API Routes deployment\""
 }
 
