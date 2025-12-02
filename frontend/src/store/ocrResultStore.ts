@@ -171,12 +171,8 @@ export const useOCRResultStore = create<OCRResultState>((set) => ({
     set((state) => {
       if (!state.ocrResult) return state
 
-<<<<<<< HEAD
       const currentItems = state.ocrResult.検査結果 ?? []
-      const newItems = currentItems.filter((_, i) => i !== index)
-=======
-      const newItems = state.ocrResult.検査結果.filter((_: ExaminationItem, i: number) => i !== index)
->>>>>>> 649b950 (2025-12-02  Fix TS build errors for OCR UI and CSV export)
+      const newItems = currentItems.filter((_: ExaminationItem, i: number) => i !== index)
 
       return {
         ocrResult: {
