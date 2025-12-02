@@ -1,6 +1,5 @@
 {
   "buildCommand": "npm install && npm run build",
-  "outputDirectory": ".next",
   "headers": [
     {
       "source": "/(.*)",
@@ -11,7 +10,6 @@
         }
       ]
     }
-  ],
-  "ignoreCommand": "echo \"Skipping api/ and backend/ for Next.js API Routes deployment\""
+  ]
 }
 

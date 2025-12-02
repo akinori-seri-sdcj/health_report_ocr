@@ -31,7 +31,7 @@ export interface HealthReportData {
 
 // APIリクエスト
 export interface ProcessHealthReportRequest {
-  images: File[] | Express.Multer.File[]
+  images: File[] | Array<{ buffer?: unknown; mimetype?: string; originalname?: string; size?: number }>
 }
 
 // APIレスポンス
