@@ -30,6 +30,7 @@ async function copyDir(srcDir, destDir) {
 async function main() {
   const distPath = path.resolve('frontend', 'dist')
   const targetPath = path.resolve('public', 'ui')
+  const staticPath = path.resolve('frontend', 'public')
 
   if (!fs.existsSync(distPath)) {
     console.error('[sync-frontend] Missing build output. Run "npm run build:frontend" first.')
@@ -39,7 +40,13 @@ async function main() {
   await removeDir(targetPath)
   await ensureDir(targetPath)
   await copyDir(distPath, targetPath)
-  console.log(`[sync-frontend] Copied ${distPath} -> ${targetPath}`)
+  if (fs.existsSync(staticPath)) {
+    await copyDir(staticPath, targetPath)
+    console.log(`[sync-frontend] Copied ${distPath} -> ${targetPath}`)
+    console.log(`[sync-frontend] Copied ${staticPath} -> ${targetPath}`)
+  } else {
+    console.log(`[sync-frontend] Copied ${distPath} -> ${targetPath} (no frontend/public to copy)`)
+  }
 }
 
 main().catch((err) => {
