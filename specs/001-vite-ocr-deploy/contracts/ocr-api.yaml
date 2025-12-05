@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: OCR API (Next.js API Routes)
+  version: "1.0.0"
+paths:
+  /api/ocr:
+    post:
+      summary: OCR画像を送信して結果を取得する
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  minItems: 1
+                  maxItems: 10
+              required:
+                - images
+      responses:
+        "200":
+          description: OCR結果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    description: OCR抽出結果のJSON（サーバ側スキーマに準拠）
+        "400":
+          description: 入力バリデーションエラー（枚数/サイズ超過など）
+        "500":
+          description: サーバ側エラー（タイムアウト、外部API失敗など）
+  /api/ocr/health:
+    get:
+      summary: OCR APIの健全性と設定状態を確認する
+      responses:
+        "200":
+          description: 稼働中
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  services:
+                    type: object
+                    properties:
+                      openai:
+                        type: string
+                  mock:
+                    type: boolean
+                  detail:
+                    type: string
+        "503":
+          description: 環境変数未設定や外部依存の問題を検知

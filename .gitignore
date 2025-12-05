@@ -23,6 +23,7 @@ yarn.lock
 dist/
 build/
 .next/
+public/ui/
 *.log
 
 # ============================================

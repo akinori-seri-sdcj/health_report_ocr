@@ -315,7 +315,7 @@ useEffect(() => {
           <>
             <section className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">�B�e�����摜</h2>
+                <h2 className="text-lg font-semibold">撮影・アップロードした画像</h2>
 
                 {/* ファイルアップロードボタン */}
                 <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-medium text-black transition">
@@ -326,7 +326,7 @@ useEffect(() => {
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  📁 画像を追加
+                  画像を追加
                 </label>
 
                 {/* Export button removed per spec (single entry via bottom button) */}
@@ -377,18 +377,31 @@ useEffect(() => {
             {/* エラー表示 */}
             {error && (
               <section className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-red-800 mb-2">�G���[</h2>
-                <p className="text-red-600">{error}</p>
-                <button
-                  onClick={handleStartOCR}
-                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  再試行
-                </button>
+                <h2 className="text-lg font-semibold text-red-800 mb-2">エラーが発生しました</h2>
+                <p className="text-red-700 mb-3">原因: {error}</p>
+                <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+                  <li>画像サイズ/枚数の上限を超えていないか確認してください。</li>
+                  <li>APIキーなどのサーバー設定が正しいかを運用者に確認してください。</li>
+                  <li>時間をおいて再試行するか、ネットワーク接続を確認してください。</li>
+                </ul>
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={handleStartOCR}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    再試行
+                  </button>
+                  <button
+                    onClick={() => setError(null)}
+                    className="px-4 py-2 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+                  >
+                    メッセージを閉じる
+                  </button>
+                </div>
               </section>
             )}
 
-            {/* OCR結果の表示・編集 */}
+            {/* OCR結果の表示・編集 */}            {/* OCR結果の表示・編集 */}
             {ocrResult && (
               <>
                 {/* 読み取り元画像（デスクトップは右側に固定表示） */}
@@ -592,6 +605,7 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({ image, index }) => {
     </div>
   )
 }
+
 
 
 

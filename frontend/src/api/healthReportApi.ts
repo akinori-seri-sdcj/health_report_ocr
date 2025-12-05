@@ -3,6 +3,7 @@
  */
 
 // Prefer same-origin API Route; allow override via VITE_API_URL for custom staging
+// デフォルトは同一オリジンの API Routes を利用する
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 /**
@@ -58,14 +59,13 @@ export async function processHealthReport(
 
     // HTTPステータスがエラーの場合
     if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`
+      let errorMessage = `OCR APIがエラーを返しました (HTTP ${response.status})`
 
       try {
         const errorData: OCRErrorResponse = await response.json()
         const rawError = errorData?.error
 
         if (typeof rawError === 'string' && rawError.trim()) {
-          // error: "メッセージ文字列"
           errorMessage = rawError
         } else if (
           rawError &&
@@ -73,10 +73,8 @@ export async function processHealthReport(
           typeof (rawError as any).message === 'string' &&
           (rawError as any).message.trim()
         ) {
-          // error: { message: "...", code?: "..." }
           errorMessage = (rawError as any).message
         } else if (rawError && typeof rawError === 'object') {
-          // それ以外のオブジェクトの場合は JSON にしておく
           try {
             errorMessage = JSON.stringify(rawError)
           } catch {
@@ -99,6 +97,13 @@ export async function processHealthReport(
         }
       } catch {
         // JSON でないエラー本文の場合は既定メッセージのまま
+      }
+
+      if (response.status === 413) {
+        errorMessage = '画像のサイズまたは枚数が上限を超えています (HTTP 413)'
+      }
+      if (response.status >= 500) {
+        errorMessage += '。時間をおいて再試行してください。'
       }
 
       // ここでは Error オブジェクトではなく「文字列」を投げる
@@ -126,6 +131,10 @@ export async function processHealthReport(
 
     // Error オブジェクトなら message を優先
     if (error instanceof Error && error.message) {
+      // ネットワークエラーなどで fetch 自体が失敗した場合
+      if (error.message.includes('Failed to fetch')) {
+        throw 'ネットワークエラー: 接続を確認してください'
+      }
       throw error.message
     }
 

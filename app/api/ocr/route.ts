@@ -17,7 +17,7 @@ type UploadedFile = {
 // Upload constraints: keep serverless-friendly to avoid timeouts and memory blowups
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_FILES = 10
-const TIMEOUT_MS = Number(process.env.OCR_TIMEOUT_MS || 60_000) // configurable; default 60s for local dev
+const TIMEOUT_MS = Number(process.env.OCR_TIMEOUT_MS || 120_000) // configurable; default 120s
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/jpg',

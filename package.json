@@ -4,9 +4,13 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "sync-frontend": "node scripts/sync-frontend.js",
+    "build": "npm run build:frontend && npm run sync-frontend && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "npm --prefix frontend install"
   },
   "dependencies": {
     "next": "14.2.5",
