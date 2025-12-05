@@ -12,6 +12,12 @@ async function removeDir(dirPath) {
   await fsp.rm(dirPath, { recursive: true, force: true })
 }
 
+async function copyIfExists(srcFile, destFile) {
+  if (!fs.existsSync(srcFile)) return
+  await ensureDir(path.dirname(destFile))
+  await fsp.copyFile(srcFile, destFile)
+}
+
 async function copyDir(srcDir, destDir) {
   const entries = await fsp.readdir(srcDir, { withFileTypes: true })
   for (const entry of entries) {
@@ -43,8 +49,12 @@ async function main() {
   if (fs.existsSync(staticPath)) {
     await copyDir(staticPath, targetPath)
     // 追加で /public/icons にも配置し、/ui/icons が 404 になるのを防ぐ
+    const rootFiles = ['vite.svg', 'favicon.ico', 'apple-touch-icon.png', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest']
     const rootIcons = path.resolve('public', 'icons')
     const staticIcons = path.join(staticPath, 'icons')
+    for (const f of rootFiles) {
+      await copyIfExists(path.join(staticPath, f), path.join('public', f))
+    }
     if (fs.existsSync(staticIcons)) {
       await ensureDir(rootIcons)
       await copyDir(staticIcons, rootIcons)
