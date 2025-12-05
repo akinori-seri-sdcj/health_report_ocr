@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { CameraPage } from './pages/CameraPage'
 import { ConfirmEditPage } from './pages/ConfirmEditPage'
 
 function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <Routes>
         {/* カメラページは全画面表示のため、ヘッダー・フッターなし */}
         <Route path="/camera" element={<CameraPage />} />
@@ -48,18 +48,18 @@ function HomePage() {
         カメラで撮影して、自動的にExcelファイルに変換します
       </p>
       <div className="flex flex-col gap-4 items-center">
-        <a
-          href="/camera"
+        <Link
+          to="/camera"
           className="inline-block bg-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-600 transition-colors shadow-lg"
         >
-          📸 撮影を開始
-        </a>
-        <a
-          href="/confirm-edit"
+          撮影を開始
+        </Link>
+        <Link
+          to="/confirm-edit"
           className="inline-block bg-gray-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-600 transition-colors shadow-lg"
         >
-          📁 画像をアップロード
-        </a>
+          画像をアップロード
+        </Link>
       </div>
     </div>
   )

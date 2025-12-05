@@ -4,3 +4,9 @@ model = "gpt-5.1-codex-max"
 [notice]
 hide_gpt5_1_migration_prompt = true
 "hide_gpt-5.1-codex-max_migration_prompt" = true
+
+[features]
+enable_experimental_windows_sandbox = true
+
+[projects.'\\?\C:\Users\aseri\Desktop\health_report_ocr']
+trust_level = "trusted"

@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2025-11-04
 - N/A for this feature (UI only); session prefs may use in-memory store or existing client storage (base)
 - TypeScript / Node 18+ (Next.js 14) + Next.js API Routes, OpenAI SDK (gpt-4o vision), zod schema validation (001-migrate-ocr-next-api)
 - None (stateless) (001-migrate-ocr-next-api)
+- TypeScript 5.x, Node 18 (Next.js 14, Viteフロント) + Next.js API Routes, React 18, Vite, OpenAI SDK (OCR呼び出し), zod (APIバリデーション) (001-vite-ocr-deploy)
+- なし（サーバレス、ステートレス） (001-vite-ocr-deploy)
 
 - TypeScript (frontend), TypeScript (backend) + exceljs (Excel export), encoding-japanese (CSV Shift_JIS encoding), existing state/store and table components (001-fix-export-spec)
 
@@ -31,8 +33,8 @@ npm test; npm run lint
 TypeScript (frontend), TypeScript (backend): Follow standard conventions
 
 ## Recent Changes
+- 001-vite-ocr-deploy: Added TypeScript 5.x, Node 18 (Next.js 14, Viteフロント) + Next.js API Routes, React 18, Vite, OpenAI SDK (OCR呼び出し), zod (APIバリデーション)
 - 001-migrate-ocr-next-api: Added TypeScript / Node 18+ (Next.js 14) + Next.js API Routes, OpenAI SDK (gpt-4o vision), zod schema validation
-- 001-migrate-ocr-next-api: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 - 001-migrate-ocr-next-api: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 
 
