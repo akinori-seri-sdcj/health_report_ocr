@@ -42,6 +42,14 @@ async function main() {
   await copyDir(distPath, targetPath)
   if (fs.existsSync(staticPath)) {
     await copyDir(staticPath, targetPath)
+    // 追加で /public/icons にも配置し、/ui/icons が 404 になるのを防ぐ
+    const rootIcons = path.resolve('public', 'icons')
+    const staticIcons = path.join(staticPath, 'icons')
+    if (fs.existsSync(staticIcons)) {
+      await ensureDir(rootIcons)
+      await copyDir(staticIcons, rootIcons)
+      console.log(`[sync-frontend] Copied ${staticIcons} -> ${rootIcons}`)
+    }
     console.log(`[sync-frontend] Copied ${distPath} -> ${targetPath}`)
     console.log(`[sync-frontend] Copied ${staticPath} -> ${targetPath}`)
   } else {

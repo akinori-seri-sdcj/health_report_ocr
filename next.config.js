@@ -4,6 +4,11 @@ const nextConfig = {
   output: 'standalone',
   async rewrites() {
     return [
+      // アイコンなどの静的配信を /icons にフォールバック
+      {
+        source: '/ui/icons/:path*',
+        destination: '/icons/:path*',
+      },
       {
         source: '/ui',
         destination: '/ui/index.html',
