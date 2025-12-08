@@ -14,14 +14,8 @@ const nextConfig = {
         destination: '/ui/index.html',
       },
       {
-        source: '/ui/:path*',
-        has: [
-          {
-            type: 'header',
-            key: 'accept',
-            value: 'text/html.*',
-          },
-        ],
+        // 拡張子を含まない /ui/* を SPA として index にフォールバック
+        source: '/ui/:path((?!.*\\.).*)',
         destination: '/ui/index.html',
       },
     ]
