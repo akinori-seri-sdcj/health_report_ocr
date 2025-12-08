@@ -8,6 +8,7 @@
     "build:frontend": "npm --prefix frontend run build",
     "sync-frontend": "node scripts/sync-frontend.js",
     "build": "npm run build:frontend && npm run sync-frontend && next build",
+    "postbuild": "node scripts/sync-standalone-public.js",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "npm --prefix frontend install"
